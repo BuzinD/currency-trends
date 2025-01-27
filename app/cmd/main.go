@@ -3,6 +3,8 @@ package main
 import (
 	"cur/internal/config/loadEnv"
 	"cur/internal/config/okxConfig"
+	"cur/internal/infrastructure/dbConnection"
+
 	"fmt"
 	"log"
 )
@@ -16,6 +18,9 @@ func main() {
 	}
 
 	fmt.Printf("config: %s %s %s", conf.ApiKey, conf.Secret, conf.PassPhrase)
+
+	dbConnection.GetDbConnection()
+
 }
 
 func initApp() {
