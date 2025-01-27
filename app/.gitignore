@@ -1,0 +1,4 @@
+.vscode
+/env/.env
+/env/db.env
+/env/okx.env
