@@ -8,9 +8,9 @@ run:
 	cd app && go run cmd/main.go
 stop:
 	docker compose -f ./docker/docker-compose.yml stop
-run-app:
+start:
 	docker compose -f ./docker/docker-compose.yml up -d
-run-db:
+start-db:
 	docker compose -f ./docker/docker-compose.yml up currency-db -d
 build-app:
 	docker build -t go-currency:0.0.1 -f docker/go/Dockerfile .
