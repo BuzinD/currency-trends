@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  currency-db:
+    hostname: "currency-db"
+    image: postgres:15.1
+    container_name: currency-db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    env_file:
+      - ../app/env/db.env
+  currency-go:
+    hostname: "currency-go"
+    image: docker.io/library/go-currency:0.0.1
+    container_name: currency-go
+    ports:
+      - "8112:80"
+    depends_on:
+      - currency-db
+    volumes:
+      - ../app:/usr/local/src
