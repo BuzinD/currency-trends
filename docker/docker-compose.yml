@@ -1,4 +1,8 @@
 version: "3.8"
+networks:
+  networks:
+  default:
+    name: currency
 services:
   currency-db:
     hostname: "currency-db"
