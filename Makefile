@@ -28,5 +28,5 @@ migrate:
 	${MIGRATE_CMD} up
 migrate-down:
 	${MIGRATE_CMD} down
-
-	
+tidy:
+	cd app && go mod tidy
