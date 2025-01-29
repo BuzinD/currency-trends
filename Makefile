@@ -10,7 +10,7 @@ cloneEnv:
 	cp app/env/db.env.example app/env/db.env
 	cp app/env/okx.env.example app/env/okx.env
 run:
-	export DB_PORT=15432 && cd app && go run cmd/main.go
+	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd app && go run cmd/main.go
 stop:
 	docker compose -f ./docker/docker-compose.yml stop
 start:
