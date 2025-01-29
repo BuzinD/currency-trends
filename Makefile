@@ -6,9 +6,9 @@ export
 
 first-run-dev: cloneEnv build-postgres-db start-db build-go-base build-migration migrate run
 cloneEnv:
-	cp app/env/.env.example app/env/.env
-	cp app/env/db.env.example app/env/db.env
-	cp app/env/okx.env.example app/env/okx.env
+	cp -n app/env/.env.example app/env/.env
+	cp -n app/env/db.env.example app/env/db.env
+	cp -n app/env/okx.env.example app/env/okx.env
 run:
 	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd app && go run cmd/main.go
 stop:
