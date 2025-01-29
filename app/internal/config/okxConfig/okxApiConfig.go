@@ -3,6 +3,7 @@ package okxConfig
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gofor-little/env"
 )
@@ -10,9 +11,13 @@ import (
 const API_ENV_PATH = "env/okx.env"
 
 type OkxApiConfig struct {
-	ApiKey     string
-	Secret     string
-	PassPhrase string
+	ApiKey         string
+	Secret         string
+	PassPhrase     string
+	ApiUri         string
+	CandlesPath    string
+	TickersPath    string
+	CurrenciesPath string
 }
 
 func LoadEnv() {
@@ -26,9 +31,13 @@ func LoadEnv() {
 func GetOkxApiConfig() (*OkxApiConfig, error) {
 
 	config := OkxApiConfig{
-		env.Get(ApiKey, ""),
-		env.Get(Secret, ""),
-		env.Get(PassPhrase, ""),
+		ApiKey:         env.Get(ApiKey, ""),
+		Secret:         env.Get(Secret, ""),
+		PassPhrase:     env.Get(PassPhrase, ""),
+		ApiUri:         strings.Trim(env.Get(ApiUri, ""), "'\""),
+		CandlesPath:    strings.Trim(env.Get(CandlesPath, ""), "'\""),
+		TickersPath:    strings.Trim(env.Get(TickersPath, ""), "'\""),
+		CurrenciesPath: strings.Trim(env.Get(CurrenciesPath, ""), "'\""),
 	}
 
 	if config.ApiKey == "" || config.Secret == "" || config.PassPhrase == "" {
