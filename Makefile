@@ -23,6 +23,8 @@ build-go-base:
 	docker build -t go-base:0.0.1 -f docker/go-base/Dockerfile .
 build-migration:
 	docker build -t go-migration:0.0.1 -f docker/go-migration/Dockerfile .
+build-postgres-db:
+	docker build -t currency-db:0.0.1 -f docker/postgres/Dockerfile .
 create-migration:
 	docker run --rm -i -v ./app/migrations:/migrations/migrations --network currency docker.io/library/go-migration:0.0.1 /migrations/migrate create -ext sql -dir migrations $(n)
 migrate:
