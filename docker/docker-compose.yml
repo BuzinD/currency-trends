@@ -13,7 +13,7 @@ services:
     ports:
       - "15432:5432"
     env_file:
-      - ../app/env/db.env
+      - ../data-fetcher/env/db.env
   currency-go:
     hostname: "currency-go"
     image: docker.io/library/go-currency:0.0.1
@@ -23,4 +23,4 @@ services:
     depends_on:
       - currency-db
     volumes:
-      - ../app:/usr/local/src
+      - ../data-fetcher:/usr/local/src

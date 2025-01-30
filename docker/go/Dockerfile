@@ -4,11 +4,11 @@ RUN apk --no-cache add bash git make gcc gettext musl-dev
 
 WORKDIR /usr/local/src
 
-COPY ["app/go.mod", "app/go.sum", "./"]
+COPY ["data-fetcher/go.mod", "data-fetcher/go.sum", "./"]
 
 RUN go mod download
 
-COPY app ./
+COPY data-fetcher ./
 
 RUN go build -o ./bin/app cmd/main.go
 
