@@ -1,18 +1,17 @@
 # Currency-trends-monitor
-**Whats this?** This is a project for trying use go lang futures.
+**What's this?** This is a project to test Go Lang's capabilities.
+
+
 ## Start service for development:
-- CLone env files
-    ___be careful check it can rewrite your *.env in ./app/env/ skip this step if alrady has *.env files___ 
-    </br> run `make cloneEnv` 
-- follow to ./app/env dir and set the real values for variables in *.env files
-- run: `make start-db` for start pg-db in container
+For the first running: 
+prepare variabls in app/env/okx.env
+use a command: ` make first-run-dev` It build docker images for DB, migrations also run up DB, migrations, app
 
-## Run service
-    - prepare your env files
-    - prepare your docker image
-    - run `make build-app`
-    - run `make start` for starting services
+## Available commands
+For getting info about available commands run: <br>
+`make help`
 
-## Fatures of project:
-- Getting currency values
-- 
+## Features of project:
+- Getting available currencies
+<!-- - Getting trade history candles -->
+<!-- - Sending notifications on different triggers -->
