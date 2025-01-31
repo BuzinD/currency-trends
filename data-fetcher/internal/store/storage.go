@@ -14,11 +14,9 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) Currency() *CurrencyRepository {
-	if s.currencyRep != nil {
-		return s.currencyRep
+	if s.currencyRep == nil {
+		s.currencyRep = NewCurrencyRepository(s.db)
 	}
-
-	s.currencyRep = NewCurrencyRepository(s.db)
 
 	return s.currencyRep
 }
