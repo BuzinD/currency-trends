@@ -31,11 +31,11 @@ func GetDbConnection() (*sql.DB, error) {
 	// Test the connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Unable to ping the database: %v\n", err)
 		defer func() {
-			db.Close()
+			_ = db.Close()
 			fmt.Println("db closed")
 		}()
+		log.Fatalf("Unable to ping the database: %v\n", err)
 	}
 
 	fmt.Println("Successfully connected to the database!")
