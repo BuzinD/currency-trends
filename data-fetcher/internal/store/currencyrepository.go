@@ -1,6 +1,7 @@
 package store
 
 import (
+	"cur/internal/model"
 	structure "cur/internal/structure/response"
 	"database/sql"
 	"fmt"
@@ -41,4 +42,31 @@ func (rep *CurrencyRepository) InsertOrUpdateCurrencies(currencies *[]structure.
 	}
 
 	return nil
+}
+
+func (rep *CurrencyRepository) FetchAll() ([]model.Currency, error) {
+	query := "SELECT * FROM currencies"
+
+	rows, err := rep.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() // Ensure rows are closed after function execution
+
+	var currencies []model.Currency
+	for rows.Next() {
+		var currency model.Currency
+		err := rows.Scan(&currency.Id, &currency.Code, &currency.Chain, &currency.CanDeposit, &currency.CanWithdraw)
+		if err != nil {
+			return nil, err
+		}
+		currencies = append(currencies, currency)
+	}
+
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return currencies, nil
 }
