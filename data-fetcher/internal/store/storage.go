@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"strings"
 )
 
 type Store struct {
@@ -19,4 +20,21 @@ func (s *Store) Currency() *CurrencyRepository {
 	}
 
 	return s.currencyRep
+}
+
+func (s *Store) TruncateTables(tables []string) error {
+	if len(tables) > 0 {
+		_, err := s.db.Exec("TRUNCATE " + strings.Join(tables, ",") + " CASCADE")
+		return err
+	}
+	return nil
+}
+
+func (s *Store) CloseConnection() {
+	if s.db != nil {
+		err := s.db.Close()
+		if err != nil {
+			return
+		}
+	}
 }
