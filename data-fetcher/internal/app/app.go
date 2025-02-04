@@ -48,7 +48,7 @@ func (app *App) initConfig() error {
 }
 
 func (app *App) initStore() error {
-	db, err := dbConnection.GetDbConnection()
+	db, err := dbConnection.GetDbConnection(app.Config().DbConfig())
 	if err != nil {
 		return err
 	}
