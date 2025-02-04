@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -48,10 +49,14 @@ func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyRe
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			log.Printf("Error closing response body: %v", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Bad response: %v", resp.Status)
+		return nil, fmt.Errorf("Bad response: %v.", resp.Status)
 	}
 
 	var currencyResponse structure.CurrencyResponse
@@ -59,7 +64,7 @@ func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyRe
 	err = json.NewDecoder(resp.Body).Decode(&currencyResponse)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %v", err)
+		return nil, fmt.Errorf("Failed to decode JSON: %v.", err)
 	}
 
 	return &currencyResponse.Data, nil
@@ -81,7 +86,12 @@ func (service *OkxService) UpdateCandles() {
 		fmt.Println("Error:", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Println(string(body))
@@ -89,12 +99,12 @@ func (service *OkxService) UpdateCandles() {
 
 func fetchTickers(config *config.Config) error {
 
-	okxConfig := config.OkxApiConfig()
-	req := okxConfig.ApiUri + okxConfig.TickersPath
+	okxApiConfig := config.OkxApiConfig()
+	req := okxApiConfig.ApiUri + okxApiConfig.TickersPath
 	// req := "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
 	fmt.Println(req)
 
-	resp, err := http.Get(okxConfig.ApiUri + okxConfig.TickersPath)
+	resp, err := http.Get(okxApiConfig.ApiUri + okxApiConfig.TickersPath)
 
 	if err != nil {
 		return err
