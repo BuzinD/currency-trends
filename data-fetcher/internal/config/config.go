@@ -30,7 +30,7 @@ func (c *Config) OkxApiConfig() *okxConfig.OkxApiConfig {
 	return c.okxConfig
 }
 
-func DbConfig(c *Config) *dbConfig.DbConfig {
+func (c *Config) DbConfig() *dbConfig.DbConfig {
 	if c.dbConfig != nil {
 		return c.dbConfig
 	}
