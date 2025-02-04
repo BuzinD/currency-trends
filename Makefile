@@ -14,8 +14,15 @@ cloneEnv: ## copy examples to working env files (without overwriting)
 	cp --update=none data-fetcher/env/okx.env.example data-fetcher/env/okx.env
 run: ## run data-fetcher service
 	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd data-fetcher && go run cmd/main.go
-stop: ## stop docker containers
-	docker compose -f ./docker/docker-compose.yml stop
+test-env-up: ## up test env and db
+	docker compose -f ./docker/docker-compose-test.yml up -d
+test:
+	export TEST_DB_PORT=25432 &&	export TEST_DB_HOST=localhost && cd data-fetcher && go test ./... -v
+test-env-down:
+	docker compose -f ./docker/docker-compose-test.yml down
+
+down: ## stop docker containers
+	docker compose -f ./docker/docker-compose.yml down
 start: ## start docker containers
 	docker compose -f ./docker/docker-compose.yml up -d
 start-db: ## start docker container for db
