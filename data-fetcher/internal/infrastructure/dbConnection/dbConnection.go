@@ -9,13 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func GetDbConnection() (*sql.DB, error) {
-
-	config, err := dbConfig.GetDbConfig()
-
-	if err != nil {
-		log.Fatal(err)
-	}
+func GetDbConnection(config *dbConfig.DbConfig) (*sql.DB, error) {
 
 	// Format the connection string
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
