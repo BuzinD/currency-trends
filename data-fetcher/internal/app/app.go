@@ -26,12 +26,15 @@ func (app *App) initLogger() {
 
 func StartApplication() error {
 	app := newApp()
-	app.initConfig()
+	err := app.initConfig()
 	app.initLogger()
-	app.initStore()
+	err = app.initStore()
 	app.initScheduledTasks()
+	if err != nil {
+		app.log.Error(err)
+	}
 
-	return nil
+	return err
 }
 
 func newApp() *App {
