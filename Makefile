@@ -18,9 +18,9 @@ cloneEnv: ## copy examples to working env files (without overwriting)
 run: ## run data-fetcher service
 	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd $(APP_FETCHER_DIR) && go run cmd/main.go
 test-env-up: ## up test env and db
-	docker compose -f ./docker/docker-compose-test.yml up -d
+	export DB_HOST=currency-db-test && docker compose -f ./docker/docker-compose-test.yml up -d
 test: ## run tests (run 'make test-env-up' before)
-	export TEST_DB_PORT=25432 &&	export TEST_DB_HOST=localhost && cd $(APP_FETCHER_DIR) && go test ./... -v
+	export DB_PORT=25432 && export DB_HOST=localhost && cd $(APP_FETCHER_DIR) && go test ./... -v
 test-env-down:
 	docker compose -f ./docker/docker-compose-test.yml down
 

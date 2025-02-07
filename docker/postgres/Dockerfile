@@ -1,4 +1,4 @@
-FROM postgres:15.1 AS build
+FROM postgres:15.1
 
 # Set environment variables for PostgreSQL
 ENV POSTGRES_USER=postgres

@@ -26,7 +26,7 @@ var (
 )
 
 func makeTestStore() *store.Store {
-	conf, err := dbConfig.GetTestDbConfig()
+	conf, err := dbConfig.GetDbConfig()
 
 	if err != nil {
 		panic(err)
