@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -34,15 +35,22 @@ func makeTestStore() *store.Store {
 	return store.NewStore(db)
 }
 
-func beforeTest() {
+func TestMain(m *testing.M) {
 	storage = makeTestStore()
 	currencyRep = storage.Currency()
-
 	okxService = NewOkxService(currencyRep)
+
+	// Выполнение тестов
+	exitVal := m.Run()
+
+	// Очистка ресурсов, если требуется
+	storage.CloseConnection()
+
+	// Завершение тестов с корректным кодом выхода
+	os.Exit(exitVal)
 }
 
 func TestOkxService_UpdateCurrencies(t *testing.T) {
-	beforeTest()
 	type expectation struct {
 		currencies []model.Currency
 	}
@@ -225,11 +233,6 @@ func TestOkxService_FetchCurrenciesFails(t *testing.T) {
 	}))
 
 	defer mockServer.Close()
-
-	okxApiConfig = &okxConfig.OkxApiConfig{
-		ApiUri:         mockServer.URL,
-		CurrenciesPath: "/currencies",
-	}
 
 	_, err := fetchCurrencies(okxApiConfig)
 	assert.Error(t, err)
