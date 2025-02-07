@@ -1,11 +1,12 @@
 package okx
 
 import (
-	"cur/internal/config/dbConfig"
 	"cur/internal/config/okxConfig"
+	"cur/internal/infrastructure"
 	"cur/internal/infrastructure/dbConnection"
 	"cur/internal/model"
 	"cur/internal/store"
+
 	structure "cur/internal/structure/response"
 	"database/sql"
 	"encoding/json"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -24,25 +26,28 @@ var (
 	okxApiConfig *okxConfig.OkxApiConfig
 )
 
-func makeTestStore() *store.Store {
-	conf, err := dbConfig.GetTestDbConfig()
+func TestMain(m *testing.M) {
+	db, _ = dbConnection.GetTestDbConnection()
+	infrastructure.MigrateTestDb(db)
+	storage = makeTestStore()
+	currencyRep = storage.Currency()
+	okxService = NewOkxService(currencyRep)
 
-	if err != nil {
-		panic(err)
-	}
-	db, _ = dbConnection.GetDbConnection(conf)
+	// Выполнение тестов
+	exitVal := m.Run()
+
+	// Очистка ресурсов, если требуется
+	storage.CloseConnection()
+
+	// Завершение тестов с корректным кодом выхода
+	os.Exit(exitVal)
+}
+
+func makeTestStore() *store.Store {
 	return store.NewStore(db)
 }
 
-func beforeTest() {
-	storage = makeTestStore()
-	currencyRep = storage.Currency()
-
-	okxService = NewOkxService(currencyRep)
-}
-
 func TestOkxService_UpdateCurrencies(t *testing.T) {
-	beforeTest()
 	type expectation struct {
 		currencies []model.Currency
 	}
@@ -206,7 +211,6 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 				fmt.Println(err)
 			}
 		}
-		defer storage.CloseConnection()
 	}
 }
 
