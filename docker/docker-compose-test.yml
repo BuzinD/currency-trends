@@ -12,7 +12,7 @@ services:
     env_file:
       - ../data-fetcher/env/db.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready --host=localhost --username=${TEST_DB_USER} --dbname=${TEST_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready --host=localhost --username=${DB_USER} --dbname=${DB_NAME}"]
       interval: 1s
       retries: 3
       timeout: 5s
@@ -26,4 +26,4 @@ services:
       - ../data-fetcher/env/db.env
     volumes:
       - ../data-fetcher/migrations:/migrations/migrations
-    entrypoint: /migrations/migrate -path=/migrations/migrations -database "postgres://${TEST_DB_USER}:${TEST_DB_PASSWORD}@${TEST_DB_HOST}:${TEST_DB_PORT}/${TEST_DB_NAME}?sslmode=disable" up
+    entrypoint: /migrations/migrate -path=/migrations/migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" up
