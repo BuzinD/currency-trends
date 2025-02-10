@@ -12,10 +12,11 @@ import (
 )
 
 type App struct {
-	config *config.Config
-	log    *log.Logger
-	store  *store.Store
-	cron   *cron.Cron
+	config     *config.Config
+	log        *log.Logger
+	store      *store.Store
+	cron       *cron.Cron
+	okxService *okx.OkxService
 }
 
 func (app *App) initLogger() {
@@ -24,17 +25,18 @@ func (app *App) initLogger() {
 	app.log.SetOutput(os.Stdout)
 }
 
-func StartApplication() error {
+func StartApplication() {
 	app := newApp()
 	err := app.initConfig()
 	app.initLogger()
 	err = app.initStore()
+	app.initOkxService()
+	app.fetchHistoricalCandlesData()
 	app.initScheduledTasks()
 	if err != nil {
 		app.log.Error(err)
+		os.Exit(1)
 	}
-
-	return err
 }
 
 func newApp() *App {
@@ -66,13 +68,13 @@ func (app *App) Config() *config.Config {
 }
 
 func (app *App) initScheduledTasks() {
-	okxService := okx.NewOkxService(app.store.Currency()) //TODO set config during creation
+
 	app.cron = cron.New()
 
 	// Running at 8:00 и 21:00 every day
 	app.cron.AddFunc("* 8,21 * * *", func() {
 		app.log.Info("process update currencies started")
-		if err := okxService.UpdateCurrencies(app.Config().OkxApiConfig()); err != nil {
+		if err := app.okxService.UpdateCurrencies(); err != nil {
 			app.log.Error(err)
 		}
 		app.log.Info("process update currencies finished")
@@ -92,4 +94,12 @@ func (app *App) initScheduledTasks() {
 
 	// Waiting
 	select {}
+}
+
+func (app *App) initOkxService() {
+	app.okxService = okx.NewOkxService(
+		app.store.Currency(),
+		app.store.Candle(),
+		app.config.OkxApiConfig(),
+	)
 }
