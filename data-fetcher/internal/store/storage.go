@@ -8,6 +8,7 @@ import (
 type Store struct {
 	db          *sql.DB
 	currencyRep *CurrencyRepository
+	candleRep   *CandleRepository
 }
 
 func NewStore(db *sql.DB) *Store {
@@ -20,6 +21,14 @@ func (s *Store) Currency() *CurrencyRepository {
 	}
 
 	return s.currencyRep
+}
+
+func (s *Store) Candle() *CandleRepository {
+	if s.candleRep == nil {
+		s.candleRep = NewCandleRepository(s.db)
+	}
+
+	return s.candleRep
 }
 
 func (s *Store) TruncateTables(tables []string) error {
