@@ -80,12 +80,10 @@ func (app *App) initScheduledTasks() {
 		app.log.Info("process update currencies finished")
 	})
 
-	// Running at 9:00 every day
-	app.cron.AddFunc("0 9 * * *", func() {
+	// Running every hour
+	app.cron.AddFunc("0 * * * *", func() {
 		app.log.Info("process update tickers started")
-		if err := okx.UpdateTickers(app.Config()); err != nil {
-			app.log.Error(err)
-		}
+		app.okxService.UpdateCandles()
 		app.log.Info("process update tickers finished")
 	})
 
@@ -102,4 +100,9 @@ func (app *App) initOkxService() {
 		app.store.Candle(),
 		app.config.OkxApiConfig(),
 	)
+}
+
+// fetchHistoricalCandlesData fetch candles historical data
+func (app *App) fetchHistoricalCandlesData() {
+	app.okxService.UpdateHistoricalCandles()
 }
