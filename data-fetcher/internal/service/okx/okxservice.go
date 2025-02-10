@@ -11,8 +11,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
+
 	"net/http"
 	"strconv"
 	"time"
@@ -27,17 +28,20 @@ type OkxService struct {
 	currencyRepository *store.CurrencyRepository
 	candleRepository   *store.CandleRepository
 	okxConfig          *okxConfig.OkxApiConfig
+	log                *log.Logger
 }
 
 func NewOkxService(
 	currencyRepository *store.CurrencyRepository,
 	candleRepository *store.CandleRepository,
 	config *okxConfig.OkxApiConfig,
+	log *log.Logger,
 ) *OkxService {
 	return &OkxService{
 		currencyRepository: currencyRepository,
 		candleRepository:   candleRepository,
 		okxConfig:          config,
+		log:                log,
 	}
 }
 
