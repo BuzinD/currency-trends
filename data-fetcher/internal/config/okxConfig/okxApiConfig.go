@@ -18,6 +18,9 @@ type OkxApiConfig struct {
 	CandlesPath    string
 	TickersPath    string
 	CurrenciesPath string
+	BaseCurrency   string
+	Currencies     []string
+	CandlesBar     string
 }
 
 func LoadEnv() {
@@ -38,6 +41,9 @@ func GetOkxApiConfig() (*OkxApiConfig, error) {
 		CandlesPath:    strings.Trim(env.Get(CandlesPath, ""), "'\""),
 		TickersPath:    strings.Trim(env.Get(TickersPath, ""), "'\""),
 		CurrenciesPath: strings.Trim(env.Get(CurrenciesPath, ""), "'\""),
+		BaseCurrency:   strings.Trim(env.Get(BaseCurrency, ""), "'\""),
+		Currencies:     strings.Split(strings.Trim(env.Get(Currencies, ""), "[]'\" "), ","),
+		CandlesBar:     strings.Trim(env.Get(CandlesBar, ""), "'\""),
 	}
 
 	if config.ApiKey == "" || config.Secret == "" || config.PassPhrase == "" {

@@ -10,4 +10,7 @@ const (
 	CandlesPath    = "CANDLES_PATH"
 	TickersPath    = "TICKERS_PATH"
 	CurrenciesPath = "CURRENCIES_PATH"
+	Currencies     = "CURRENCIES"
+	BaseCurrency   = "BASE_CURRENCY"
+	CandlesBar     = "CANDLES_BAR"
 )
