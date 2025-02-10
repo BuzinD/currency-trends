@@ -72,20 +72,28 @@ func (app *App) initScheduledTasks() {
 	app.cron = cron.New()
 
 	// Running at 8:00 и 21:00 every day
-	app.cron.AddFunc("* 8,21 * * *", func() {
+	_, err := app.cron.AddFunc("* 8,21 * * *", func() {
 		app.log.Info("process update currencies started")
 		if err := app.okxService.UpdateCurrencies(); err != nil {
 			app.log.Error(err)
 		}
 		app.log.Info("process update currencies finished")
 	})
+	if err != nil {
+		app.log.Error(err)
+		return
+	}
 
 	// Running every hour
-	app.cron.AddFunc("0 * * * *", func() {
+	_, err = app.cron.AddFunc("0 * * * *", func() {
 		app.log.Info("process update tickers started")
 		app.okxService.UpdateCandles()
 		app.log.Info("process update tickers finished")
 	})
+	if err != nil {
+		app.log.Error(err)
+		return
+	}
 
 	// running
 	app.cron.Start()
