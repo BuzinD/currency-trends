@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -47,7 +48,9 @@ func TestMain(m *testing.M) {
 	okxService = NewOkxService(
 		currencyRep,
 		storage.Candle(),
-		okxApiConfig)
+		okxApiConfig,
+		log.New(),
+	)
 
 	// Выполнение тестов
 	exitVal := m.Run()
