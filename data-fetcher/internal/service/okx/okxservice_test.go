@@ -38,7 +38,16 @@ func makeTestStore() *store.Store {
 func TestMain(m *testing.M) {
 	storage = makeTestStore()
 	currencyRep = storage.Currency()
-	okxService = NewOkxService(currencyRep)
+
+	okxApiConfig = &okxConfig.OkxApiConfig{
+		ApiUri:         "http://localhost",
+		CurrenciesPath: "/currencies",
+	}
+
+	okxService = NewOkxService(
+		currencyRep,
+		storage.Candle(),
+		okxApiConfig)
 
 	// Выполнение тестов
 	exitVal := m.Run()
@@ -188,13 +197,12 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 		mockServer := startMockServer(testCase.response)
 		defer mockServer.Close()
 
-		// Create a mock OkxApiConfig
-		okxApiConfig = &okxConfig.OkxApiConfig{
+		okxService.SetConfig(&okxConfig.OkxApiConfig{
 			ApiUri:         mockServer.URL,
 			CurrenciesPath: "/currencies",
-		}
+		})
 
-		err := okxService.UpdateCurrencies(okxApiConfig)
+		err := okxService.UpdateCurrencies()
 
 		currencies, err := currencyRep.FetchAll()
 

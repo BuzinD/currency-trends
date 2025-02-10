@@ -18,6 +18,20 @@ import (
 
 type OkxService struct {
 	currencyRepository *store.CurrencyRepository
+	candleRepository   *store.CandleRepository
+	okxConfig          *okxConfig.OkxApiConfig
+}
+
+func NewOkxService(
+	currencyRepository *store.CurrencyRepository,
+	candleRepository *store.CandleRepository,
+	config *okxConfig.OkxApiConfig,
+) *OkxService {
+	return &OkxService{
+		currencyRepository: currencyRepository,
+		candleRepository:   candleRepository,
+		okxConfig:          config,
+	}
 }
 
 func NewOkxService(currencyRepository *store.CurrencyRepository) *OkxService {
