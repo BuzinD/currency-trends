@@ -13,7 +13,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+)
+
+const (
+	BeforeCandles string = "1577836800000"
+	Limit                = 100
 )
 
 type OkxService struct {
@@ -34,16 +40,16 @@ func NewOkxService(
 	}
 }
 
-func NewOkxService(currencyRepository *store.CurrencyRepository) *OkxService {
-	return &OkxService{currencyRepository: currencyRepository}
+func (okx *OkxService) SetConfig(okxConfig *okxConfig.OkxApiConfig) {
+	okx.okxConfig = okxConfig
 }
 
-func (service *OkxService) UpdateCurrencies(okxConfig *okxConfig.OkxApiConfig) error {
-	data, err := fetchCurrencies(okxConfig)
+func (okx *OkxService) UpdateCurrencies() error {
+	data, err := fetchCurrencies(okx.okxConfig)
 	if err != nil {
 		return err
 	}
-	return service.currencyRepository.InsertOrUpdateCurrencies(data)
+	return okx.currencyRepository.InsertOrUpdateCurrencies(data)
 }
 
 func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyResponseData, error) {
@@ -84,12 +90,97 @@ func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyRe
 	return &currencyResponse.Data, nil
 }
 
-func UpdateTickers(config *config.Config) error {
-	return fetchTickers(config)
+func (okx *OkxService) UpdateTickers() error {
+	return fetchTickers(okx.okxConfig)
 }
 
-func (service *OkxService) UpdateCandles() {
-	url := "https://www.okx.com/api/v5/market/candles?instId=BTC-USDT&bar=1D"
+func (okx *OkxService) UpdateCandles() {
+	for _, cur2 := range okx.okxConfig.Currencies {
+		pair := cur2 + "-" + okx.okxConfig.BaseCurrency
+
+		for {
+			before := okx.getLastTsForPair(pair)
+			fmt.Println(before)
+			candles, err := okx.fetchCandles(pair, before, "")
+
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			if len(candles) == 0 {
+				fmt.Println("fetched 0 candles. exit")
+				break
+			}
+
+			err = okx.candleRepository.InsertCandles(&candles)
+		}
+	}
+}
+
+func (okx *OkxService) UpdateHistoricalCandles() {
+	for _, cur2 := range okx.okxConfig.Currencies {
+		pair := cur2 + "-" + okx.okxConfig.BaseCurrency
+		minAfter := okx.getLastTsForPair(pair)
+		after := strconv.FormatInt(time.Now().UnixMilli(), 10)
+		for {
+			fmt.Printf("fetching chunk candles for pair %s, earlier than %s\n", pair, after)
+
+			candles, err := okx.fetchCandles(pair, "", after)
+
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			if len(candles) < Limit {
+				fmt.Println("fetched 0 candles. exit")
+				break
+			}
+
+			err = okx.candleRepository.InsertCandles(&candles)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+
+			after = okx.getFirstTsForPair(pair)
+			if after <= minAfter {
+				break
+			}
+		}
+	}
+}
+
+// getLastTsForPair getting max timestamp for pair
+func (okx *OkxService) getLastTsForPair(pair string) string {
+	lastTimestamp, err := okx.candleRepository.GetLastTsForPair(pair)
+	if err != nil {
+		fmt.Println(err)
+		return BeforeCandles
+	}
+	return lastTimestamp
+}
+
+// getFirstTsForPair getting min timestamp for pair
+func (okx *OkxService) getFirstTsForPair(pair string) string {
+	lastTimestamp, err := okx.candleRepository.GetFirstTsForPair(pair)
+	if err != nil {
+		fmt.Println(err)
+		return strconv.FormatInt(time.Now().UnixMilli(), 10)
+	}
+	return lastTimestamp
+}
+
+func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle, error) {
+	url := fmt.Sprintf("%s?instId=%s&bar=%s&limit=%s", okx.okxConfig.ApiUri+
+		okx.okxConfig.CandlesPath, pair, okx.okxConfig.CandlesBar, strconv.Itoa(Limit))
+
+	if before != "" {
+		url += "&before=" + before
+	}
+
+	if after != "" {
+		url += "&after=" + after
+	}
 
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Add("Accept", "application/json")
@@ -97,28 +188,53 @@ func (service *OkxService) UpdateCandles() {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		return nil, err
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
 
-		}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
 	}(resp.Body)
 
-	body, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	var response structure.CandlesResponse
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	var candles []model.Candle
+	var timestamp time.Time
+
+	for _, c := range response.Data {
+		timestampInt, _ := strconv.ParseInt(c[0], 10, 64)
+		timestamp = time.UnixMilli(timestampInt).In(time.UTC)
+
+		open, _ := price.ParsePrice(c[1])
+		high, _ := price.ParsePrice(c[2])
+		low, _ := price.ParsePrice(c[3])
+		closePrice, _ := price.ParsePrice(c[4])
+		volume, _ := price.ParsePrice(c[5])
+
+		candles = append(candles, model.Candle{
+			Pair:      pair,
+			Timestamp: timestamp,
+			Open:      open,
+			High:      high,
+			Low:       low,
+			Close:     closePrice,
+			Volume:    volume,
+		})
+	}
+
+	return candles, nil
 }
 
-func fetchTickers(config *config.Config) error {
+func fetchTickers(config *okxConfig.OkxApiConfig) error {
 
-	okxApiConfig := config.OkxApiConfig()
-	req := okxApiConfig.ApiUri + okxApiConfig.TickersPath
+	req := config.ApiUri + config.TickersPath
 	// req := "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
 	fmt.Println(req)
 
-	resp, err := http.Get(okxApiConfig.ApiUri + okxApiConfig.TickersPath)
+	resp, err := http.Get(config.ApiUri + config.TickersPath)
 
 	if err != nil {
 		return err
