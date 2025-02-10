@@ -3,8 +3,9 @@ package okx
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"cur/internal/config"
 	"cur/internal/config/okxConfig"
+	"cur/internal/helper/price"
+	"cur/internal/model"
 	"cur/internal/store"
 	structure "cur/internal/structure/response"
 	"encoding/base64"
