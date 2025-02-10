@@ -244,7 +244,12 @@ func fetchTickers(config *okxConfig.OkxApiConfig) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			//TODO do somthing
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Bad response: %v", resp.Status)
