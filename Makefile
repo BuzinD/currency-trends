@@ -3,9 +3,10 @@
 n=?
 
 APP_FETCHER_DIR=data-fetcher
+MIGRATIONS_PATH=$(shell pwd)/$(APP_FETCHER_DIR)/migrations
 
-include data-fetcher/env/db.env
-MIGRATE_CMD=docker run --rm -i -v $(APP_FETCHER_DIR)/migrations:/migrations/migrations --network currency docker.io/library/go-migration:0.0.1 /migrations/migrate -path=/migrations/migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${POSTGRES_DB}?sslmode=disable"
+include $(APP_FETCHER_DIR)/env/db.env
+MIGRATE_CMD=docker run --rm -i -v $(MIGRATIONS_PATH):/migrations/migrations --network currency docker.io/library/go-migration:0.0.1 /migrations/migrate -path=/migrations/migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${POSTGRES_DB}?sslmode=disable"
 export
 
 help: ## Show this help.
@@ -25,7 +26,7 @@ test-env-down:
 	docker compose -f ./docker/docker-compose-test.yml down
 
 down: ## stop docker containers
-	docker compose -f COMPOSE_FILE down
+	docker compose -f ./docker/docker-compose.yml down
 start: ## start docker containers
 	docker compose -f ./docker/docker-compose.yml up -d
 start-db: ## start docker container for db
