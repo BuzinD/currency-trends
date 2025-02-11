@@ -225,7 +225,6 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 				fmt.Println(err)
 			}
 		}
-		defer storage.CloseConnection()
 	}
 }
 
