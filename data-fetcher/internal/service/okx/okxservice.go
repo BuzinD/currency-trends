@@ -7,7 +7,6 @@ import (
 	"cur/internal/helper/price"
 	"cur/internal/model"
 	"cur/internal/store"
-	structure "cur/internal/structure/response"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -57,7 +56,7 @@ func (okx *OkxService) UpdateCurrencies() error {
 	return okx.currencyRepository.InsertOrUpdateCurrencies(data)
 }
 
-func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyResponseData, error) {
+func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]response.CurrencyResponseData, error) {
 
 	client := &http.Client{}
 
@@ -84,7 +83,7 @@ func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyRe
 		return nil, fmt.Errorf("Bad response: %v.", resp.Status)
 	}
 
-	var currencyResponse structure.CurrencyResponse
+	var currencyResponse response.CurrencyResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&currencyResponse)
 
@@ -93,10 +92,6 @@ func fetchCurrencies(okxConfig *okxConfig.OkxApiConfig) (*[]structure.CurrencyRe
 	}
 
 	return &currencyResponse.Data, nil
-}
-
-func (okx *OkxService) UpdateTickers() error {
-	return fetchTickers(okx.okxConfig)
 }
 
 func (okx *OkxService) UpdateCandles() {
@@ -197,7 +192,7 @@ func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle,
 		_ = Body.Close()
 	}(resp.Body)
 
-	var response structure.CandlesResponse
+	var response response.CandlesResponse
 
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
