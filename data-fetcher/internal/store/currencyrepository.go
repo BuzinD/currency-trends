@@ -2,7 +2,7 @@ package store
 
 import (
 	"cur/internal/model"
-	structure "cur/internal/structure/response"
+	"cur/internal/service/okx/response"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -18,7 +18,7 @@ func NewCurrencyRepository(db *sql.DB) *CurrencyRepository {
 	}
 }
 
-func (rep *CurrencyRepository) InsertOrUpdateCurrencies(currencies *[]structure.CurrencyResponseData) error {
+func (rep *CurrencyRepository) InsertOrUpdateCurrencies(currencies *[]response.CurrencyResponseData) error {
 	query := strings.Join([]string{"INSERT INTO currencies (code, chain, can_deposit, can_withdraw)	VALUES ($1, $2, $3, $4)",
 		"ON CONFLICT (code, chain)",
 		"DO UPDATE SET can_deposit = $3, can_withdraw = $4;"}, " ")
