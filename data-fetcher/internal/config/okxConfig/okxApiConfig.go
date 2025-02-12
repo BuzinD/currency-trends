@@ -21,6 +21,7 @@ type OkxApiConfig struct {
 	BaseCurrency   string
 	Currencies     []string
 	CandlesBar     string
+	WssEndpoint    string
 }
 
 func LoadEnv() {
@@ -44,6 +45,7 @@ func GetOkxApiConfig() (*OkxApiConfig, error) {
 		BaseCurrency:   strings.Trim(env.Get(BaseCurrency, ""), "'\""),
 		Currencies:     strings.Split(strings.Trim(env.Get(Currencies, ""), "[]'\" "), ","),
 		CandlesBar:     strings.Trim(env.Get(CandlesBar, ""), "'\""),
+		WssEndpoint:    strings.Trim(env.Get(WssEndpoint, ""), "'\""),
 	}
 
 	if config.ApiKey == "" || config.Secret == "" || config.PassPhrase == "" {

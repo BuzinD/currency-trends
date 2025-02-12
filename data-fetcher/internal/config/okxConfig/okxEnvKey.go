@@ -13,4 +13,5 @@ const (
 	Currencies     = "CURRENCIES"
 	BaseCurrency   = "BASE_CURRENCY"
 	CandlesBar     = "CANDLES_BAR"
+	WssEndpoint    = "WSS_ENDPOINT"
 )
