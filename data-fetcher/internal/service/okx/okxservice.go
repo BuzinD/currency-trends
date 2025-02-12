@@ -232,7 +232,7 @@ func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle,
 	return candles, nil
 }
 
-// fetchTickers TODO needs to do something with result
+// FetchTrades TODO needs to do something with result
 func (okx *OkxService) FetchTrades(ctx context.Context) {
 
 	conn, _, err := websocket.DefaultDialer.Dial(okx.okxConfig.WssEndpoint, nil)
@@ -242,7 +242,7 @@ func (okx *OkxService) FetchTrades(ctx context.Context) {
 	defer conn.Close()
 
 	// Send subscription
-	err = subscribeToTrades(conn)
+	err = okx.subscribeToTrades(conn)
 	if err != nil {
 		log.Fatalf("Failed to subscribe: %v", err)
 	}
@@ -277,14 +277,17 @@ func (okx *OkxService) FetchTrades(ctx context.Context) {
 }
 
 // Subscribe to trades
-func subscribeToTrades(conn *websocket.Conn) error {
+func (okx *OkxService) subscribeToTrades(conn *websocket.Conn) error {
+	var requestArgs []request.Arg
+
+	for _, v := range okx.okxConfig.Currencies {
+		requestArg := request.Arg{Channel: "trades", InstId: fmt.Sprintf("%s-%s", v, okx.okxConfig.BaseCurrency)}
+		requestArgs = append(requestArgs, requestArg)
+	}
 
 	subscription := request.SubscriptionMessage{
-		Op: "subscribe",
-		Args: []request.Arg{
-			{Channel: "trades", InstId: "BTC-USDT"},
-			{Channel: "trades", InstId: "ETH-USDT"},
-		},
+		Op:   "subscribe",
+		Args: requestArgs,
 	}
 
 	msg, _ := json.Marshal(subscription)
@@ -296,7 +299,7 @@ func subscribeToTrades(conn *websocket.Conn) error {
 	return nil
 }
 
-// Listen for trades in real time
+// listenForTrades Listen for trades in real time
 func listenForTrades(ctx context.Context, conn *websocket.Conn) {
 	for {
 		select {
@@ -318,7 +321,6 @@ func listenForTrades(ctx context.Context, conn *websocket.Conn) {
 				continue
 			}
 
-			// Print Trade Data
 			for _, data := range trade.Data {
 				fmt.Printf("[%s] Trade ID: %s | Price: %s | Size: %s | Side: %s | Time: %s\n",
 					trade.Arg.InstId,
