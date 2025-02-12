@@ -314,7 +314,7 @@ func TestOkxService_UpdateCandles(t *testing.T) {
 					},
 				},
 				{
-					Data: [][]string{},before
+					Data: [][]string{},
 				},
 			},
 
