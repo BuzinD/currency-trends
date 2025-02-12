@@ -1,22 +1,37 @@
 package app
 
 import (
+	"context"
 	"cur/internal/config"
 	"cur/internal/infrastructure/dbConnection"
 	"cur/internal/service/okx"
 	"cur/internal/store"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 )
 
 type App struct {
-	config     *config.Config
-	log        *log.Logger
-	store      *store.Store
-	cron       *cron.Cron
-	okxService *okx.OkxService
+	config      *config.Config
+	log         *log.Logger
+	store       *store.Store
+	cron        *cron.Cron
+	okxService  *okx.OkxService
+	cancelStack []context.CancelFunc
+}
+
+func (app *App) fetchTrades() {
+	// Create context for background task
+	ctx, cancel := context.WithCancel(context.Background())
+	app.cancelStack = append(app.cancelStack, cancel)
+
+	// Run FetchTrades in background as a goroutine
+	go func() {
+		app.okxService.FetchTrades(ctx)
+	}()
 }
 
 func (app *App) initLogger() {
@@ -31,12 +46,23 @@ func StartApplication() {
 	app.initLogger()
 	err = app.initStore()
 	app.initOkxService()
+	// Handle Graceful Shutdown
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	app.fetchTrades()
 	app.fetchHistoricalCandlesData()
 	app.initScheduledTasks()
+
 	if err != nil {
 		app.log.Error(err)
 		os.Exit(1)
 	}
+	<-sigs
+	for _, f := range app.cancelStack {
+		f()
+	}
+
 }
 
 func newApp() *App {
@@ -97,9 +123,6 @@ func (app *App) initScheduledTasks() {
 
 	// running
 	app.cron.Start()
-
-	// Waiting
-	select {}
 }
 
 func (app *App) initOkxService() {
