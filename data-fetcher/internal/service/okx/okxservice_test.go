@@ -314,6 +314,22 @@ func TestOkxService_UpdateCandles(t *testing.T) {
 					},
 				},
 				{
+					Data: [][]string{},before
+				},
+			},
+
+			params: struct{ truncateAfterTest bool }{truncateAfterTest: true},
+		},
+		{
+			name: "Ok all requests return void data",
+			expected: expectation{
+				0,
+			},
+			responses: []Response{
+				{
+					Data: [][]string{},
+				},
+				{
 					Data: [][]string{},
 				},
 			},
