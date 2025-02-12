@@ -14,8 +14,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
-	"os/signal"
 
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -232,45 +230,69 @@ func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle,
 	return candles, nil
 }
 
-// FetchTrades TODO needs to do something with result
+// FetchTrades TODO needs to do something with results
 func (okx *OkxService) FetchTrades(ctx context.Context) {
 
-	conn, _, err := websocket.DefaultDialer.Dial(okx.okxConfig.WssEndpoint, nil)
-	if err != nil {
-		log.Fatalf("Failed to connect to WebSocket: %v", err)
-	}
-	defer conn.Close()
-
-	// Send subscription
-	err = okx.subscribeToTrades(conn)
-	if err != nil {
-		log.Fatalf("Failed to subscribe: %v", err)
-	}
-
-	// Signal handling for graceful shutdown
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
-	go func() {
-		listenForTrades(ctx, conn)
-	}()
-
-	// Keep connection alive and handle interruption
-	ticker := time.NewTicker(10 * time.Second)
-	defer ticker.Stop()
+	var reconnectInterval time.Duration = 1 * time.Second
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("Stopping trade listener...")
-
+			log.Println("Stopping FetchTrades...")
 			return
-		case <-ticker.C:
-			// send ping to keep connection alive
-			err := conn.WriteMessage(websocket.PingMessage, []byte{})
+		default:
+
+			conn, _, err := websocket.DefaultDialer.Dial(okx.okxConfig.WssEndpoint, nil)
 			if err != nil {
-				log.Errorf("Ping error: %v", err)
-				return
+				log.Printf("Failed to connect to WebSocket: %v", err)
+				time.Sleep(reconnectInterval)
+				reconnectInterval *= 2
+				if reconnectInterval > 60*time.Second {
+					reconnectInterval = 60 * time.Second
+				}
+				continue
+			}
+			log.Println("Connected to WebSocket")
+			reconnectInterval = 1 * time.Second
+
+			// Defer connection close
+			defer conn.Close()
+
+			err = okx.subscribeToTrades(conn)
+			if err != nil {
+				log.Printf("Failed to subscribe: %v", err)
+				continue
+			}
+
+			// Listen for messages
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				if err := listenForTrades(ctx, conn); err != nil {
+					return
+				}
+			}()
+
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ctx.Done():
+					log.Println("Stopping WebSocket connection...")
+					_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+					return
+				case <-ticker.C:
+					// Send ping to keep connection alive
+					err := conn.WriteMessage(websocket.PingMessage, []byte{})
+					if err != nil {
+						log.Printf("Ping error: %v", err)
+						return
+					}
+				case <-done:
+					log.Println("Connection closed, attempting to reconnect...")
+					break
+				}
 			}
 		}
 	}
@@ -300,17 +322,17 @@ func (okx *OkxService) subscribeToTrades(conn *websocket.Conn) error {
 }
 
 // listenForTrades Listen for trades in real time
-func listenForTrades(ctx context.Context, conn *websocket.Conn) {
+func listenForTrades(ctx context.Context, conn *websocket.Conn) error {
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Stopping trade listener...")
-			return
+			return nil
 		default:
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				log.Printf("Error reading message: %v", err)
-				return
+				return err
 			}
 
 			// Parse Trade Message
