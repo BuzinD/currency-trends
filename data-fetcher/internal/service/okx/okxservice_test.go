@@ -5,17 +5,18 @@ import (
 	"cur/internal/config/okxConfig"
 	"cur/internal/infrastructure/dbConnection"
 	"cur/internal/model"
+	"cur/internal/service/okx/response"
 	"cur/internal/store"
-	structure "cur/internal/structure/response"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -71,7 +72,7 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 	testCases := []struct {
 		name     string
 		expected expectation
-		response structure.CurrencyResponse
+		response response.CurrencyResponse
 		params   struct {
 			truncateAfterTest bool
 		}
@@ -85,8 +86,8 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 					{Code: "USDT", Chain: "ETH20", CanWithdraw: true, CanDeposit: true},
 				},
 			},
-			response: structure.CurrencyResponse{
-				Data: []structure.CurrencyResponseData{
+			response: response.CurrencyResponse{
+				Data: []response.CurrencyResponseData{
 					{
 						Ccy:    "BTC",
 						Chain:  "ETH20",
@@ -117,8 +118,8 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 					{Code: "USDT", Chain: "ETH20", CanWithdraw: true, CanDeposit: true},
 				},
 			},
-			response: structure.CurrencyResponse{
-				Data: []structure.CurrencyResponseData{
+			response: response.CurrencyResponse{
+				Data: []response.CurrencyResponseData{
 					{
 						Ccy:    "BTC",
 						Chain:  "ETH20",
@@ -149,8 +150,8 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 					{Code: "USDT", Chain: "ETH20", CanWithdraw: true, CanDeposit: true},
 				},
 			},
-			response: structure.CurrencyResponse{
-				Data: []structure.CurrencyResponseData{
+			response: response.CurrencyResponse{
+				Data: []response.CurrencyResponseData{
 					{
 						Ccy:    "BTC",
 						Chain:  "ETH20",
@@ -175,8 +176,8 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 					{Code: "USDT", Chain: "ETH20", CanWithdraw: false, CanDeposit: false},
 				},
 			},
-			response: structure.CurrencyResponse{
-				Data: []structure.CurrencyResponseData{
+			response: response.CurrencyResponse{
+				Data: []response.CurrencyResponseData{
 					{
 						Ccy:    "BTC",
 						Chain:  "ETH20",
@@ -229,7 +230,7 @@ func TestOkxService_UpdateCurrencies(t *testing.T) {
 	}
 }
 
-func startMockServer(response structure.CurrencyResponse) *httptest.Server {
+func startMockServer(response response.CurrencyResponse) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(response)
