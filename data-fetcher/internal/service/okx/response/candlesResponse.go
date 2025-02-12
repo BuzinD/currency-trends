@@ -1,4 +1,4 @@
-package structure
+package response
 
 type CandlesResponse struct {
 	Code string     `json:"code"`

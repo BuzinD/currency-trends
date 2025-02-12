@@ -1,4 +1,4 @@
-package structure
+package response
 
 type CurrencyResponse struct {
 	Code string                 `json:"code"`

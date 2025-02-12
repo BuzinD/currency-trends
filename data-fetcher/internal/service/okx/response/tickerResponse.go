@@ -1,4 +1,4 @@
-package structure
+package response
 
 type TickerResponse struct {
 	Code string               `json:"code"`
