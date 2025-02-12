@@ -27,6 +27,7 @@ var (
 )
 
 func makeTestStore() *store.Store {
+	dbConfig.LoadEnv()
 	conf, err := dbConfig.GetDbConfig()
 
 	if err != nil {
