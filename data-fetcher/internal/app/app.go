@@ -58,10 +58,13 @@ func StartApplication() {
 		app.log.Error(err)
 		os.Exit(1)
 	}
+	defer func() {
+		for _, f := range app.cancelStack {
+			f()
+		}
+	}()
+
 	<-sigs
-	for _, f := range app.cancelStack {
-		f()
-	}
 
 }
 
