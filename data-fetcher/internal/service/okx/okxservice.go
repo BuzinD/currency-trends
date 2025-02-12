@@ -105,19 +105,20 @@ func (okx *OkxService) UpdateCandles() {
 
 		for {
 			before := okx.getLastTsForPair(pair)
-			fmt.Println(before)
 			candles, err := okx.fetchCandles(pair, before, "")
 
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 			if len(candles) == 0 {
-				fmt.Println("fetched 0 candles. exit")
 				break
 			}
 
 			err = okx.candleRepository.InsertCandles(&candles)
+			if err != nil {
+				log.Error(err)
+			}
 		}
 	}
 }
@@ -128,22 +129,20 @@ func (okx *OkxService) UpdateHistoricalCandles() {
 		minAfter := okx.getLastTsForPair(pair)
 		after := strconv.FormatInt(time.Now().UnixMilli(), 10)
 		for {
-			fmt.Printf("fetching chunk candles for pair %s, earlier than %s\n", pair, after)
-
+			log.Infof("fetching chunk candles for pair %s, earlier than %s\n", pair, after)
 			candles, err := okx.fetchCandles(pair, "", after)
 
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 			if len(candles) < Limit {
-				fmt.Println("fetched 0 candles. exit")
 				break
 			}
 
 			err = okx.candleRepository.InsertCandles(&candles)
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				break
 			}
 
@@ -159,7 +158,6 @@ func (okx *OkxService) UpdateHistoricalCandles() {
 func (okx *OkxService) getLastTsForPair(pair string) string {
 	lastTimestamp, err := okx.candleRepository.GetLastTsForPair(pair)
 	if err != nil {
-		fmt.Println(err)
 		return BeforeCandles
 	}
 	return lastTimestamp
@@ -169,7 +167,6 @@ func (okx *OkxService) getLastTsForPair(pair string) string {
 func (okx *OkxService) getFirstTsForPair(pair string) string {
 	lastTimestamp, err := okx.candleRepository.GetFirstTsForPair(pair)
 	if err != nil {
-		fmt.Println(err)
 		return strconv.FormatInt(time.Now().UnixMilli(), 10)
 	}
 	return lastTimestamp
@@ -233,6 +230,7 @@ func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle,
 	return candles, nil
 }
 
+// fetchTickers TODO needs to do something with result
 func fetchTickers(config *okxConfig.OkxApiConfig) error {
 
 	req := config.ApiUri + config.TickersPath
@@ -276,6 +274,7 @@ func fetchTickers(config *okxConfig.OkxApiConfig) error {
 	return nil
 }
 
+// createSignature create signature for okx request
 func createSignature(timestamp, method, path, body string, conf *okxConfig.OkxApiConfig) string {
 	signaturePayload := timestamp + method + path + body
 	mac := hmac.New(sha256.New, []byte(conf.Secret))
@@ -283,6 +282,7 @@ func createSignature(timestamp, method, path, body string, conf *okxConfig.OkxAp
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
+// getAuthHeaders make headers for okx api request
 func getAuthHeaders(
 	req *http.Request,
 	conf *okxConfig.OkxApiConfig,
