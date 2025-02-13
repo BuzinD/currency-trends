@@ -132,6 +132,7 @@ func (app *App) initOkxService() {
 		app.store.Currency(),
 		app.store.Candle(),
 		app.config.OkxApiConfig(),
+		app.config.KafkaConfig(),
 		app.log,
 	)
 }
