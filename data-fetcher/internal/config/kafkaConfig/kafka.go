@@ -22,7 +22,7 @@ func LoadEnv() {
 
 func GetKafkaConfig() (*KafkaConfig, error) {
 
-	brokersString := env.Get(Brokers, "")
+	brokersString := strings.Trim(env.Get(Brokers, ""), "\n'")
 
 	return &KafkaConfig{
 		parseBrokers(brokersString),
@@ -30,7 +30,7 @@ func GetKafkaConfig() (*KafkaConfig, error) {
 }
 
 func parseBrokers(brokersString string) []string {
-	b := strings.Fields(brokersString)
+	b := strings.Split(brokersString, ",")
 
 	if len(b) == 0 {
 		log.Fatalf("Invalid brokers: %s", brokersString)
