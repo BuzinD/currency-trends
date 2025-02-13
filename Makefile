@@ -16,6 +16,7 @@ cloneEnv: ## copy examples to working env files (without overwriting)
 	cp --update=none $(APP_FETCHER_DIR)/env/.env.example $(APP_FETCHER_DIR)/env/.env || true
 	cp --update=none $(APP_FETCHER_DIR)/env/db.env.example $(APP_FETCHER_DIR)/env/db.env || true
 	cp --update=none $(APP_FETCHER_DIR)/env/okx.env.example $(APP_FETCHER_DIR)/env/okx.env || true
+	cp --update=none $(APP_FETCHER_DIR)/env/kafka.env.example $(APP_FETCHER_DIR)/env/kafka.env || true
 run: ## run data-fetcher service
 	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd $(APP_FETCHER_DIR) && go run cmd/main.go
 build: ## build a data-fetcher app
