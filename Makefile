@@ -18,6 +18,8 @@ cloneEnv: ## copy examples to working env files (without overwriting)
 	cp --update=none $(APP_FETCHER_DIR)/env/okx.env.example $(APP_FETCHER_DIR)/env/okx.env || true
 run: ## run data-fetcher service
 	export DB_HOST=127.0.0.1 &&	export DB_PORT=15432 && cd $(APP_FETCHER_DIR) && go run cmd/main.go
+build: ## build a data-fetcher app
+	cd data-fetcher && go build -o cmd/data-fetcher cmd/main.go
 test-env-up: ## up test env and db
 	export DB_HOST=currency-db-test && docker compose -f ./docker/docker-compose-test.yml up -d
 test: ## run tests (run 'make test-env-up' before)
