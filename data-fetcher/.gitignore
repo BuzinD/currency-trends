@@ -2,3 +2,4 @@
 /env/.env
 /env/db.env
 /env/okx.env
+/env/kafka.env
