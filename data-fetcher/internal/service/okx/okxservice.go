@@ -239,6 +239,12 @@ func (okx *OkxService) fetchCandles(pair, before, after string) ([]model.Candle,
 func (okx *OkxService) FetchTrades(ctx context.Context) {
 
 	var reconnectInterval time.Duration = 1 * time.Second
+	kafkaProducer, err := kafka.NewKafkaAsyncProducer(okx.kafkaConfig)
+
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+	}
+	defer kafkaProducer.Close()
 
 	for {
 		select {
@@ -273,7 +279,7 @@ func (okx *OkxService) FetchTrades(ctx context.Context) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				if err := listenForTrades(ctx, conn); err != nil {
+				if err := listenForTrades(ctx, conn, kafkaProducer); err != nil {
 					return
 				}
 			}()
@@ -327,7 +333,7 @@ func (okx *OkxService) subscribeToTrades(conn *websocket.Conn) error {
 }
 
 // listenForTrades Listen for trades in real time
-func listenForTrades(ctx context.Context, conn *websocket.Conn) error {
+func listenForTrades(ctx context.Context, conn *websocket.Conn, kafkaProducer *kafka.KafkaAsyncProducer) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -347,6 +353,8 @@ func listenForTrades(ctx context.Context, conn *websocket.Conn) error {
 				log.Printf("JSON unmarshal error: %v", err)
 				continue
 			}
+
+			kafkaProducer.SendMessage("trades", string(message))
 
 			for _, data := range trade.Data {
 				fmt.Printf("[%s] Trade ID: %s | Price: %s | Size: %s | Side: %s | Time: %s\n",
