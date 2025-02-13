@@ -2,13 +2,15 @@ package config
 
 import (
 	"cur/internal/config/dbConfig"
+	"cur/internal/config/kafkaConfig"
 	"cur/internal/config/okxConfig"
 	"fmt"
 )
 
 type Config struct {
-	okxConfig *okxConfig.OkxApiConfig
-	dbConfig  *dbConfig.DbConfig
+	okxConfig   *okxConfig.OkxApiConfig
+	dbConfig    *dbConfig.DbConfig
+	kafkaConfig *kafkaConfig.KafkaConfig
 }
 
 func NewConfig() *Config {
@@ -44,7 +46,20 @@ func (c *Config) DbConfig() *dbConfig.DbConfig {
 	return c.dbConfig
 }
 
+func (c *Config) KafkaConfig() *kafkaConfig.KafkaConfig {
+	if c.kafkaConfig == nil {
+		var err error
+		c.kafkaConfig, err = kafkaConfig.GetKafkaConfig()
+		if err != nil {
+			fmt.Errorf("Error getting kafkaConfig")
+		}
+	}
+
+	return c.kafkaConfig
+}
+
 func LoadEnvs() {
 	okxConfig.LoadEnv()
 	dbConfig.LoadEnv()
+	kafkaConfig.LoadEnv()
 }
