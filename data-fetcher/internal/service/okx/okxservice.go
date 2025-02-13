@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"cur/internal/config/kafkaConfig"
 	"cur/internal/config/okxConfig"
 	"cur/internal/helper/price"
+	"cur/internal/infrastructure/kafka"
 	"cur/internal/model"
 	"cur/internal/service/okx/request"
 	"cur/internal/service/okx/response"
@@ -32,6 +34,7 @@ type OkxService struct {
 	currencyRepository *store.CurrencyRepository
 	candleRepository   *store.CandleRepository
 	okxConfig          *okxConfig.OkxApiConfig
+	kafkaConfig        *kafkaConfig.KafkaConfig
 	log                *log.Logger
 }
 
@@ -39,12 +42,14 @@ func NewOkxService(
 	currencyRepository *store.CurrencyRepository,
 	candleRepository *store.CandleRepository,
 	config *okxConfig.OkxApiConfig,
+	kafkaConf *kafkaConfig.KafkaConfig,
 	log *log.Logger,
 ) *OkxService {
 	return &OkxService{
 		currencyRepository: currencyRepository,
 		candleRepository:   candleRepository,
 		okxConfig:          config,
+		kafkaConfig:        kafkaConf,
 		log:                log,
 	}
 }

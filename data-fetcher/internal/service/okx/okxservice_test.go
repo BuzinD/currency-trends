@@ -2,6 +2,7 @@ package okx
 
 import (
 	"cur/internal/config/dbConfig"
+	"cur/internal/config/kafkaConfig"
 	"cur/internal/config/okxConfig"
 	"cur/internal/infrastructure/dbConnection"
 	"cur/internal/model"
@@ -51,6 +52,7 @@ func TestMain(m *testing.M) {
 		currencyRep,
 		storage.Candle(),
 		okxApiConfig,
+		&kafkaConfig.KafkaConfig{},
 		log.New(),
 	)
 
